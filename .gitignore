@@ -1,0 +1,4 @@
+*.suo
+packages/
+miniserve/bin/
+miniserve/obj/
