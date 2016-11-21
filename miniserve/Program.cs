@@ -155,18 +155,15 @@ namespace miniserve {
 				CompileSource();
 			}
 
-			/*
 			var httpServer = new SimpleHTTPServer(
 				appPath,
 				config.Port);
 
 			Console.WriteLine("Server is running on this port: {0}", httpServer.Port);
-			*/
-
 			Console.WriteLine("Press any key to exit.");
 			Console.ReadKey();
 
-			// httpServer.Stop();
+			httpServer.Stop();
 		}
 
 		/// <summary>
