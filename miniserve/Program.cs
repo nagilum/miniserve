@@ -211,6 +211,21 @@ namespace miniserve {
 					html = lines.Aggregate(string.Empty, (current, line) => current + line.Trim());
 				}
 
+				var cc = compiledContent
+					.SingleOrDefault(c => c.TagName == automation.TagName);
+
+				if (cc == null) {
+					cc = new CompiledContent {
+						TagName = automation.TagName,
+						Type = automation.Type
+					};
+
+					compiledContent.Add(cc);
+				}
+
+				cc.Content = html;
+				cc.LastCompile = DateTime.Now;
+
 				var path = automation.DestFile;
 
 				if (string.IsNullOrWhiteSpace(path)) {
@@ -259,6 +274,9 @@ namespace miniserve {
 
 					js += GetFileContents(files);
 				}
+
+				if (automation.ParseTags)
+					js = ReplaceTags(js);
 
 				try {
 					if (automation.Minify)
@@ -330,6 +348,9 @@ namespace miniserve {
 
 					less += GetFileContents(files);
 				}
+
+				if (automation.ParseTags)
+					less = ReplaceTags(less);
 
 				var lessConfig = new DotlessConfiguration {
 					MinifyOutput = automation.Minify
@@ -489,8 +510,9 @@ namespace miniserve {
 
 				var temp = string.Empty;
 
-				if (cc.Type == "less") temp = string.Format("<style type=\"text/css\">{0}</style>", cc.Content);
+				if (cc.Type == "html") temp = cc.Content;
 				if (cc.Type == "js") temp = string.Format("<script>{0}</script>", cc.Content);
+				if (cc.Type == "less") temp = string.Format("<style type=\"text/css\">{0}</style>", cc.Content);
 
 				if (string.IsNullOrWhiteSpace(temp))
 					continue;
