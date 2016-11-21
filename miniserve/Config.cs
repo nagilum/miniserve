@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace miniserve {
 	public class Config {
@@ -8,6 +9,7 @@ namespace miniserve {
 	}
 
 	public class ConfigAutomation {
+		public string TagName { get; set; }
 		public string Type { get; set; }
 		public bool Minify { get; set; }
 		public List<string> SourceFiles { get; set; }
@@ -20,5 +22,12 @@ namespace miniserve {
 	public class ConfigAutomationFSW {
 		public string Path { get; set; }
 		public string Pattern { get; set; }
+	}
+
+	public class CompiledContent {
+		public string TagName { get; set; }
+		public string Type { get; set; }
+		public string Content { get; set; }
+		public DateTime LastCompile { get; set; }
 	}
 }

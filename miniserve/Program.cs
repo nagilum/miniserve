@@ -21,14 +21,9 @@ namespace miniserve {
 		public static string configPath;
 
 		/// <summary>
-		/// Compiled LESS.
+		/// Compiled CSS and JS.
 		/// </summary>
-		public static string compiledCSS;
-
-		/// <summary>
-		/// Compiled JS.
-		/// </summary>
-		public static string compiledJS;
+		public static List<CompiledContent> compiledContent = new List<CompiledContent>();
 
 		/// <summary>
 		/// Main program entry point.
@@ -81,6 +76,11 @@ namespace miniserve {
 				config.Port = 80;
 
 			if (config.Automations != null) {
+				// Set tag names
+				foreach (var automation in config.Automations)
+					if (string.IsNullOrWhiteSpace(automation.TagName))
+						automation.TagName = Guid.NewGuid().ToString();
+
 				// Set the default wait time to 100 MS.
 				foreach (var automation in config.Automations.Where(automation => automation.WaitBeforeParsing == 0))
 					automation.WaitBeforeParsing = 100;
@@ -155,15 +155,18 @@ namespace miniserve {
 				CompileSource();
 			}
 
+			/*
 			var httpServer = new SimpleHTTPServer(
 				appPath,
 				config.Port);
 
 			Console.WriteLine("Server is running on this port: {0}", httpServer.Port);
+			*/
+
 			Console.WriteLine("Press any key to exit.");
 			Console.ReadKey();
 
-			httpServer.Stop();
+			// httpServer.Stop();
 		}
 
 		/// <summary>
@@ -200,9 +203,7 @@ namespace miniserve {
 				}
 
 				if (automation.ParseTags)
-					html = html
-						.Replace("{{ css }}", string.Format("<style type=\"text/css\">{0}</style>", compiledCSS))
-						.Replace("{{ js }}", string.Format("<script>{0}</script>", compiledJS));
+					html = ReplaceTags(html);
 
 				if (automation.Minify) {
 					var lines = html.Split('\r');
@@ -245,8 +246,6 @@ namespace miniserve {
 			if (config.Automations == null)
 				return;
 
-			compiledJS = string.Empty;
-
 			foreach (var automation in config.Automations.Where(a => a.Type.ToLower() == "js")) {
 				if (automation.WaitBeforeParsing > 0)
 					Thread.Sleep(automation.WaitBeforeParsing);
@@ -272,7 +271,20 @@ namespace miniserve {
 					Console.WriteLine("Could not minify JS");
 				}
 
-				compiledJS += js;
+				var cc = compiledContent
+					.SingleOrDefault(c => c.TagName == automation.TagName);
+
+				if (cc == null) {
+					cc = new CompiledContent {
+						TagName = automation.TagName,
+						Type = automation.Type
+					};
+
+					compiledContent.Add(cc);
+				}
+
+				cc.Content = js;
+				cc.LastCompile = DateTime.Now;
 
 				var path = automation.DestFile;
 
@@ -303,8 +315,6 @@ namespace miniserve {
 		private static void CompileLESS() {
 			if (config.Automations == null)
 				return;
-
-			compiledCSS = string.Empty;
 
 			foreach (var automation in config.Automations.Where(a => a.Type.ToLower() == "less")) {
 				if (automation.WaitBeforeParsing > 0)
@@ -338,7 +348,20 @@ namespace miniserve {
 				if (string.IsNullOrWhiteSpace(css))
 					continue;
 
-				compiledCSS += css;
+				var cc = compiledContent
+					.SingleOrDefault(c => c.TagName == automation.TagName);
+
+				if (cc == null) {
+					cc = new CompiledContent {
+						TagName = automation.TagName,
+						Type = automation.Type
+					};
+
+					compiledContent.Add(cc);
+				}
+
+				cc.Content = css;
+				cc.LastCompile = DateTime.Now;
 
 				var path = automation.DestFile;
 
@@ -366,7 +389,7 @@ namespace miniserve {
 		/// <summary>
 		/// Get a list of all files matching the given pattern in the given folder.
 		/// </summary>
-		private static List<string> GetFiles(string path, string pattern = "*.*") {
+		private static IEnumerable<string> GetFiles(string path, string pattern = "*.*") {
 			var files = new List<string>();
 			var folders = new List<string> { path };
 			var index = 0;
@@ -412,7 +435,7 @@ namespace miniserve {
 		/// <summary>
 		/// Get the content of all given files, combined.
 		/// </summary>
-		private static string GetFileContents(List<string> files) {
+		private static string GetFileContents(IEnumerable<string> files) {
 			var content = new StringBuilder();
 
 			foreach (var file in files) {
@@ -426,6 +449,62 @@ namespace miniserve {
 			}
 
 			return content.ToString();
+		}
+
+		/// <summary>
+		/// Cycle content and replace tags.
+		/// </summary>
+		private static string ReplaceTags(string content) {
+			var tags = new List<string>();
+			var sp = 0;
+
+			while (true) {
+				sp = content.IndexOf("{{", sp, StringComparison.InvariantCultureIgnoreCase);
+
+				if (sp == -1)
+					break;
+
+				var ep = content.IndexOf("}}", sp, StringComparison.InvariantCultureIgnoreCase);
+
+				if (ep == -1)
+					break;
+
+				var tag = content
+					.Substring(sp, (ep - sp) + 2);
+
+				if (!tags.Contains(tag))
+					tags.Add(tag);
+
+				sp++;
+			}
+
+			foreach (var tag in tags) {
+				var tagName = tag
+					.Substring(2)
+					.Substring(0, tag.Length - 4)
+					.Trim();
+
+				var cc = compiledContent
+					.SingleOrDefault(c => c.TagName == tagName);
+
+				if (cc == null)
+					continue;
+
+				var temp = string.Empty;
+
+				if (cc.Type == "less") temp = string.Format("<style type=\"text/css\">{0}</style>", cc.Content);
+				if (cc.Type == "js") temp = string.Format("<script>{0}</script>", cc.Content);
+
+				if (string.IsNullOrWhiteSpace(temp))
+					continue;
+
+				content = content
+					.Replace(
+						tag,
+						temp);
+			}
+
+			return content;
 		}
 	}
 }
