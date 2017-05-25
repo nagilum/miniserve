@@ -6,40 +6,37 @@ Example config file:
 
 ```json
 {
-	"port": 80,
-	"folder": "s3",
-	"automations": [
-		{
-			"tagName": "my-css-file",
-			"type": "less",
-			"minify": true,
-			"sourceFiles": [
-				"source/less/*.less"
-			],
-			"destFile": "s3/app.css",
-			"waitBeforeParsing": 100
-		},
-		{
-			"tagName": "my-js-file",
-			"type": "js",
-			"minify": true,
-			"sourceFiles": [
-				"source/js/*.js"
-			],
-			"destFile": "s3/app.js",
-			"waitBeforeParsing": 100
-		},
-		{
-			"tagName": "my-html-file",
-			"type": "html",
-			"minify": true,
-			"sourceFiles": [
-				"source/html/app.html"
-			],
-			"destFile": "s3/index.html",
-			"parseTags": true
-		}
-	]
+  "port": 80,
+  "path": "build",
+  "automations": [
+    {
+      "tagName": "css",
+      "type": "less",
+      "minify": true,
+      "sourceFiles": [
+        "source/less/*.less"
+      ]
+    },
+    {
+      "tagName": "js",
+      "type": "js",
+      "minify": true,
+      "sourceFiles": [
+        "source/js/libs/*.js",
+        "source/js/*.js"
+      ]
+    },
+    {
+      "tagName": "html",
+      "type": "html",
+      "minify": true,
+      "sourceFiles": [
+        "source/html/index.html"
+      ],
+      "destFile": "build/index.html",
+      "parseTags": true
+    }
+  ]
 }
 ```
 
