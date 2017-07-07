@@ -190,14 +190,23 @@ namespace miniserve {
 					continue;
 
 				var html = string.Empty;
+			    var af = new List<string>();
 
 				foreach (var entry in automation.fswEntries) {
 					var files = GetFiles(
 						entry.Path,
 						entry.Pattern);
 
-					html += GetFileContents(files);
+				    foreach (var file in files) {
+				        if (af.Contains(file)) {
+				            continue;
+				        }
+
+				        af.Add(file);
+				    }
 				}
+
+			    html += GetFileContents(af);
 
 				if (automation.ParseTags)
 					html = ReplaceTags(html);
@@ -266,14 +275,23 @@ namespace miniserve {
 					continue;
 
 				var js = string.Empty;
+			    var af = new List<string>();
 
 				foreach (var entry in automation.fswEntries) {
 					var files = GetFiles(
 						entry.Path,
 						entry.Pattern);
 
-					js += GetFileContents(files);
+				    foreach (var file in files) {
+				        if (af.Contains(file)) {
+				            continue;
+				        }
+
+				        af.Add(file);
+				    }
 				}
+
+			    js += GetFileContents(af);
 
 				if (automation.ParseTags)
 					js = ReplaceTags(js);
@@ -340,14 +358,23 @@ namespace miniserve {
 
 				var less = string.Empty;
 				var css = string.Empty;
+			    var af = new List<string>();
 
 				foreach (var entry in automation.fswEntries) {
 					var files = GetFiles(
 						entry.Path,
 						entry.Pattern);
 
-					less += GetFileContents(files);
+				    foreach (var file in files) {
+				        if (af.Contains(file)) {
+				            continue;
+				        }
+
+				        af.Add(file);
+				    }
 				}
+
+			    less += GetFileContents(af);
 
 				if (automation.ParseTags)
 					less = ReplaceTags(less);
