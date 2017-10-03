@@ -2,3 +2,4 @@
 packages/
 miniserve/bin/
 miniserve/obj/
+.vs/
