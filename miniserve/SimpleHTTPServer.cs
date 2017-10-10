@@ -143,8 +143,15 @@ class SimpleHTTPServer {
 	}
 
 	private void Process(HttpListenerContext context) {
-		string filename = context.Request.Url.AbsolutePath;
-		Console.WriteLine(filename);
+		var filename = context.Request.Url.AbsolutePath;
+
+        Console.BackgroundColor = ConsoleColor.Black;
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("{0} ", context.Request.HttpMethod.ToUpper());
+
+        Console.ForegroundColor = ConsoleColor.White;
+	    Console.WriteLine(filename);
+
 		filename = filename.Substring(1);
 
 		if (string.IsNullOrEmpty(filename)) {
@@ -175,16 +182,35 @@ class SimpleHTTPServer {
 					context.Response.OutputStream.Write(buffer, 0, nbytes);
 				input.Close();
 
-				context.Response.StatusCode = (int)HttpStatusCode.OK;
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("200 ");
+
+			    Console.ForegroundColor = ConsoleColor.Cyan;
+			    Console.WriteLine("Ok");
+
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
 				context.Response.OutputStream.Flush();
 			}
 			catch (Exception ex) {
-				context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+			    Console.ForegroundColor = ConsoleColor.Red;
+			    Console.Write("500 ");
+
+                Console.ForegroundColor = ConsoleColor.Cyan;
+			    Console.WriteLine("Internal Server Error");
+                Console.WriteLine(" => {0}", ex.Message);
+
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 			}
 
 		}
 		else {
-			context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+		    Console.ForegroundColor = ConsoleColor.Red;
+		    Console.Write("404 ");
+
+		    Console.ForegroundColor = ConsoleColor.Cyan;
+		    Console.WriteLine("Not Found");
+
+            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
 		}
 
 		context.Response.OutputStream.Close();
